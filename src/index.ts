@@ -3,6 +3,7 @@ import chalk from 'chalk';
 import { getCommits } from './core/git.js';
 import { buildMissionSpec } from './core/template.js';
 import { executeMission } from './core/bridge.js';
+import { checkMarkers } from './core/marker.js';
 
 const program = new Command();
 
@@ -14,6 +15,7 @@ program
 interface SyncOptions {
   since?: string;
   target: string;
+  dryRun: boolean;
 }
 
 program
@@ -21,8 +23,9 @@ program
   .description('Sync git log to documentation')
   .option('--since <date>', 'Only include commits after this date (e.g. 2026-02-01)')
   .option('--target <file>', 'Target file to update', 'README.md')
+  .option('--dry-run', 'Preview the mission spec without executing', false)
   .action(async (options: SyncOptions) => {
-    const { target: targetFile, since } = options;
+    const { target: targetFile, since, dryRun } = options;
 
     try {
       console.log(chalk.blue('Starting log-agent sync...'));
@@ -35,6 +38,22 @@ program
       console.log(chalk.gray(`Found ${commits.length} commit(s)`));
 
       const spec = buildMissionSpec(commits, targetFile);
+
+      if (dryRun) {
+        console.log(chalk.yellow('--- Dry Run: Mission Spec ---'));
+        console.log(spec.prompt);
+        console.log(chalk.yellow('--- End ---'));
+        return;
+      }
+
+      const markers = await checkMarkers(targetFile);
+      if (!markers.found) {
+        console.error(chalk.red(`Markers not found in ${targetFile}.`));
+        console.error(chalk.gray(`Add these lines to your file:\n  ${markers.startTag}\n  ${markers.endTag}`));
+        process.exitCode = 1;
+        return;
+      }
+
       console.log(chalk.gray('Mission spec generated, invoking claude -p...'));
 
       const result = await executeMission(spec);
