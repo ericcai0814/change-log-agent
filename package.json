@@ -1,19 +1,34 @@
 {
   "name": "log-agent",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-powered CLI that syncs git commit history to project documentation via Claude Code",
   "type": "module",
   "main": "dist/index.mjs",
   "bin": {
     "log-agent": "dist/index.mjs"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsdown",
+    "prepublishOnly": "npm run build",
     "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "cli",
+    "git",
+    "changelog",
+    "documentation",
+    "claude",
+    "ai"
+  ],
+  "author": "Eric Cai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ericcai0814/log-agent.git"
+  },
   "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
