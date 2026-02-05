@@ -30,7 +30,20 @@ program
     try {
       console.log(chalk.blue('Starting log-agent sync...'));
 
-      const commits = await getCommits(since);
+      const markers = await checkMarkers(targetFile);
+      if (!dryRun && !markers.found) {
+        console.error(chalk.red(`Markers not found in ${targetFile}.`));
+        console.error(chalk.gray(`Add these lines to your file:\n  ${markers.startTag}\n  ${markers.endTag}`));
+        process.exitCode = 1;
+        return;
+      }
+
+      const effectiveSince = since ?? markers.lastDate;
+      if (effectiveSince) {
+        console.log(chalk.gray(`Fetching commits since ${effectiveSince}`));
+      }
+
+      const commits = await getCommits(effectiveSince);
       if (commits.length === 0) {
         console.log(chalk.yellow('No commits found, skipping sync.'));
         return;
@@ -43,14 +56,6 @@ program
         console.log(chalk.yellow('--- Dry Run: Mission Spec ---'));
         console.log(spec.prompt);
         console.log(chalk.yellow('--- End ---'));
-        return;
-      }
-
-      const markers = await checkMarkers(targetFile);
-      if (!markers.found) {
-        console.error(chalk.red(`Markers not found in ${targetFile}.`));
-        console.error(chalk.gray(`Add these lines to your file:\n  ${markers.startTag}\n  ${markers.endTag}`));
-        process.exitCode = 1;
         return;
       }
 
