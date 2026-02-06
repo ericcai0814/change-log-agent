@@ -1,10 +1,11 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 const START_TAG = '<!-- log-agent-start -->';
 const END_TAG = '<!-- log-agent-end -->';
 
 export interface MarkerCheck {
   found: boolean;
+  fileExists: boolean;
   lastDate: string | undefined;
   startTag: string;
   endTag: string;
@@ -19,10 +20,21 @@ export async function checkMarkers(filePath: string): Promise<MarkerCheck> {
       ? extractLastDate(content)
       : undefined;
 
-    return { found: hasStart && hasEnd, lastDate, startTag: START_TAG, endTag: END_TAG };
-  } catch {
-    return { found: false, lastDate: undefined, startTag: START_TAG, endTag: END_TAG };
+    return { found: hasStart && hasEnd, fileExists: true, lastDate, startTag: START_TAG, endTag: END_TAG };
+  } catch (error: unknown) {
+    const isNotFound = error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT';
+    return { found: false, fileExists: !isNotFound, lastDate: undefined, startTag: START_TAG, endTag: END_TAG };
   }
+}
+
+const MARKER_TEMPLATE = `# Changelog
+
+${START_TAG}
+${END_TAG}
+`;
+
+export async function createMarkerFile(filePath: string): Promise<void> {
+  await writeFile(filePath, MARKER_TEMPLATE, 'utf-8');
 }
 
 function extractLastDate(content: string): string | undefined {
