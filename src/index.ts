@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { getCommits } from './core/git.js';
@@ -6,12 +7,16 @@ import { executeMission } from './core/bridge.js';
 import { checkMarkers, createMarkerFile } from './core/marker.js';
 import { confirmPrompt } from './utils/prompt.js';
 
+const { version } = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
+) as { version: string };
+
 const program = new Command();
 
 program
   .name('log-agent')
   .description('AI-Powered Agentic Documentation CLI')
-  .version('0.1.0');
+  .version(version);
 
 export interface SyncOptions {
   since?: string;
