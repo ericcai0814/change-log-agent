@@ -45,10 +45,10 @@ npm install -g change-log-agent
 
 ### Prepare Your Target File
 
-Add the following markers to your `README.md` or `CHANGELOG.md`:
+If `CHANGELOG.md` doesn't exist, `log-agent sync` will offer to create it for you automatically. You can also create it manually with markers:
 
 ```markdown
-## Changelog
+# Changelog
 
 <!-- log-agent-start -->
 <!-- log-agent-end -->
@@ -57,17 +57,20 @@ Add the following markers to your `README.md` or `CHANGELOG.md`:
 ### Run
 
 ```bash
-# Basic usage — auto-detects date, updates README.md
+# Basic usage — auto-detects date, updates CHANGELOG.md
 log-agent sync
 
 # Specify a start date
 log-agent sync --since 2026-02-01
 
 # Target a different file
-log-agent sync --target CHANGELOG.md
+log-agent sync --target docs/HISTORY.md
 
 # Preview mode — prints Mission Spec without executing
 log-agent sync --dry-run
+
+# Skip interactive prompts (for CI/CD)
+log-agent sync --yes
 ```
 
 Or run without installing:
@@ -81,8 +84,9 @@ npx change-log-agent sync
 | Option | Description | Default |
 |--------|-------------|---------|
 | `--since <date>` | Only include commits after this date | Auto-detected from markers |
-| `--target <file>` | File to update | `README.md` |
+| `--target <file>` | File to update | `CHANGELOG.md` |
 | `--dry-run` | Preview the Mission Spec without executing | `false` |
+| `--yes` | Skip interactive confirmation (for CI/CD) | `false` |
 
 ---
 
@@ -95,6 +99,7 @@ npx change-log-agent sync
 | `src/core/template.ts` | Mission Spec generation |
 | `src/core/bridge.ts` | Claude Code bridge (`claude -p` invocation) |
 | `src/core/marker.ts` | Marker detection and date extraction |
+| `src/utils/prompt.ts` | Interactive confirmation prompt |
 
 ---
 
