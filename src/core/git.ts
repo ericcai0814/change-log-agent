@@ -16,7 +16,7 @@ export async function getCommits(since?: string): Promise<CommitEntry[]> {
   const args = [
     'log',
     '--pretty=format:%h|%an|%ai|%s',
-    ...(since ? [`--since=${since}`] : []),
+    ...(since ? [`--since=${since}T00:00:00`] : []),
   ];
 
   const { stdout } = await execa('git', args);
