@@ -92,6 +92,17 @@ describe('getCommits', () => {
     expect(commits[0]?.type).toBe('other');
   });
 
+  it('should preserve pipe characters in commit message', async () => {
+    mockExeca.mockResolvedValueOnce({
+      stdout: 'eee|Eve|2026-02-05 10:00:00 +0800|feat: support A | B fallback',
+    } as never);
+
+    const commits = await getCommits();
+
+    expect(commits[0]?.message).toBe('feat: support A | B fallback');
+    expect(commits[0]?.type).toBe('feat');
+  });
+
   it('should handle scoped conventional commits', async () => {
     mockExeca.mockResolvedValueOnce({
       stdout: 'ddd|Dave|2026-02-05 10:00:00 +0800|refactor(core): clean up',

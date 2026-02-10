@@ -26,11 +26,8 @@ export async function getCommits(since?: string): Promise<CommitEntry[]> {
 }
 
 function parseLine(line: string): CommitEntry {
-  const parts = line.split('|');
-  const hash = parts[0] ?? '';
-  const author = parts[1] ?? '';
-  const dateRaw = parts[2] ?? '';
-  const message = parts[3] ?? '';
+  const [hash = '', author = '', dateRaw = '', ...messageParts] = line.split('|');
+  const message = messageParts.join('|');
   const date = dateRaw.slice(0, 10);
   const type = extractType(message);
 
