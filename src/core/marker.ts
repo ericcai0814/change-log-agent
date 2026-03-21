@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-const START_TAG = '<!-- log-agent-start -->';
-const END_TAG = '<!-- log-agent-end -->';
+export const START_TAG = '<!-- log-agent-start -->';
+export const END_TAG = '<!-- log-agent-end -->';
 
 export interface MarkerCheck {
   found: boolean;
@@ -37,16 +37,17 @@ export async function createMarkerFile(filePath: string): Promise<void> {
   await writeFile(filePath, MARKER_TEMPLATE, 'utf-8');
 }
 
-function extractLastDate(content: string): string | undefined {
+export function extractDatesFromBlock(content: string): string[] {
   const startIdx = content.indexOf(START_TAG);
   const endIdx = content.indexOf(END_TAG);
-  if (startIdx === -1 || endIdx === -1) return undefined;
+  if (startIdx === -1 || endIdx === -1) return [];
 
   const block = content.slice(startIdx, endIdx);
-  const dates = [...block.matchAll(/###\s+(\d{4}-\d{2}-\d{2})/g)]
+  return [...block.matchAll(/###\s+(\d{4}-\d{2}-\d{2})/g)]
     .map((m) => m[1])
-    .filter((d): d is string => d !== undefined)
-    .sort();
+    .filter((d): d is string => d !== undefined);
+}
 
-  return dates.at(-1);
+function extractLastDate(content: string): string | undefined {
+  return extractDatesFromBlock(content).sort().at(-1);
 }

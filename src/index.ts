@@ -6,6 +6,7 @@ import { buildMissionSpec } from './core/template.js';
 import { executeMission } from './core/bridge.js';
 import { checkMarkers, createMarkerFile } from './core/marker.js';
 import { confirmPrompt } from './utils/prompt.js';
+import { validateAction } from './validate.js';
 
 const { version } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf-8'),
@@ -100,5 +101,11 @@ program
   .option('--dry-run', 'Preview the mission spec without executing', false)
   .option('--yes', 'Skip interactive confirmation (for CI/CD)', false)
   .action(syncAction);
+
+program
+  .command('validate')
+  .description('Validate changelog marker block health')
+  .option('--target <file>', 'Target file to validate', 'CHANGELOG.md')
+  .action(validateAction);
 
 program.parse();
