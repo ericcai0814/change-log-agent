@@ -106,6 +106,7 @@ program
   .command('validate')
   .description('Validate changelog marker block health')
   .option('--target <file>', 'Target file to validate', 'CHANGELOG.md')
+  .option('--json', 'Output results as JSON', false)
   .action(validateAction);
 
 program.parse();

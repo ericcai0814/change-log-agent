@@ -4,40 +4,49 @@ import { validateMarkerBlock } from './core/validate.js';
 
 export interface ValidateOptions {
   target: string;
+  json: boolean;
 }
 
 export async function validateAction(options: ValidateOptions): Promise<void> {
-  const { target } = options;
+  const { target, json } = options;
 
   try {
     const content = await readFile(target, 'utf-8');
     const result = validateMarkerBlock(content);
 
-    console.log(chalk.blue(`Validating ${target}...\n`));
+    if (json) {
+      console.log(JSON.stringify(result));
+    } else {
+      console.log(chalk.blue(`Validating ${target}...\n`));
 
-    const checkNames = ['markersExist', 'markerOrder', 'noDuplicates', 'datesValid'] as const;
-    for (const name of checkNames) {
-      const check = result.checks[name];
-      const icon = check.pass ? chalk.green('✓') : chalk.red('✗');
-      console.log(`  ${icon} ${name}: ${check.message}`);
+      for (const name of Object.keys(result.checks) as Array<keyof typeof result.checks>) {
+        const check = result.checks[name];
+        const icon = check.pass ? chalk.green('✓') : chalk.red('✗');
+        console.log(`  ${icon} ${name}: ${check.message}`);
+      }
+
+      console.log('');
+
+      if (result.healthy) {
+        console.log(chalk.green('All checks passed.'));
+      } else {
+        console.log(chalk.red('Validation failed.'));
+      }
     }
 
-    console.log('');
-
-    if (result.healthy) {
-      console.log(chalk.green('All checks passed.'));
-    } else {
-      console.log(chalk.red('Validation failed.'));
+    if (!result.healthy) {
       process.exitCode = 1;
     }
   } catch (error: unknown) {
     const isNotFound = error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT';
+    const message = isNotFound
+      ? `File not found: ${target}`
+      : error instanceof Error ? error.message : 'Unknown error';
 
-    if (isNotFound) {
-      console.error(chalk.red(`File not found: ${target}`));
+    if (json) {
+      console.log(JSON.stringify({ healthy: false, error: message }));
     } else {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error(chalk.red(`Validation error: ${message}`));
+      console.error(chalk.red(isNotFound ? message : `Validation error: ${message}`));
     }
     process.exitCode = 1;
   }
